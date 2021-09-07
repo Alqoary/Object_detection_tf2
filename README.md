@@ -4,7 +4,9 @@ object_detection in tensorflow2
 REQUIRED LIBRARIES
 
 $ pip install tensorflow
+
 $ pip install tensorflow-object-detection-api
+
 $ pip install opencv-python
 
 If you have a gpu go ahead and download the appropriate CUDA version for you python version
