@@ -10,7 +10,7 @@ from object_detection.utils import visualization_utils as vis_util
 import cv2
 import pathlib
 
-
+import glob
 
 
 # patch tf1 into `utils.ops`
@@ -108,27 +108,48 @@ class object_detection():
         print("Cannot open camera")
         exit()
     while True:
-        # Capture frame-by-frame
-        ret, frame = cap.read()
-        # if frame is read correctly ret is True
-        if not ret:
-            print("Can't receive frame (stream end?). Exiting ...")
-            break
-        # Our operations on the frame come here
-        # Display the resulting frame
-        img = self.show_inference(detection_model, frame)
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-        cv2.imshow('frame', img)
+      # Capture frame-by-frame
+      ret, frame = cap.read()
+      # if frame is read correctly ret is True
+      if not ret:
+        print("Can't receive frame (stream end?). Exiting ...")
+        break
+      # Our operations on the frame come here
+      # Display the resulting frame
+      img = self.show_inference(detection_model, frame)
+      img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+      cv2.imshow('object_detection', img)
 
-        #cv.imshow('frame', gray)
-        if cv2.waitKey(1) == ord('q'):
-            break
+      #cv.imshow('frame', gray)
+      if cv2.waitKey(1) == ord('q'):
+          break
     # When everything done, release the capture
     cap.release()
     cv2.destroyAllWindows()
 
+
+
+
+  def detect_img(self):
+    imgs = glob.glob("images/test/*.jpg")
+    c = 0
+    for i in imgs:
+
+      img = cv2.imread(i)
+        # if frame is read correctly ret is True
+
+
+      img = self.show_inference(detection_model, img)
+      img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+      cv2.imwrite('images/detected/image'+str(c)+'.jpg', img)
+      c+=1
+
+    def get_imgs_path(self):
+      pass
+
 if __name__=='__main__':
   od = object_detection()
-  od.web_cam_detect()
-  
+  #od.web_cam_detect()
+  od.detect_img()
+
   print('nice')
