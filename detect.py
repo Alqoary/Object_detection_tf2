@@ -1,17 +1,14 @@
+
+# Required Libraries
+
 import tensorflow as tf
 import numpy as np
 import os
-import sys
-
 from object_detection.utils import ops as utils_ops
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
-
 import cv2
-import pathlib
-
 import glob
-
 
 # patch tf1 into `utils.ops`
 utils_ops.tf = tf.compat.v1
@@ -20,27 +17,33 @@ utils_ops.tf = tf.compat.v1
 tf.gfile = tf.io.gfile
 
 
-  # List of the strings that is used to add correct label for each box.
+# List of the labels for each box (Model labels) 
+
+# Label model path variable
 PATH_TO_LABELS = 'labels/mscoco_label_map.pbtxt'
+
+# Convert the labels into a dict
 category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS, use_display_name=True)
 
-
-
+# Model path/name
 model_name = 'our_model/ssd_mobilenet_v1_coco_2017_11_17'
-detection_model = tf.saved_model.load(model_name)
 
-#print(detection_model.signatures['serving_default'].inputs)
+# Load model
+detection_model = tf.saved_model.load(model_name)
 
 
 class object_detection():
   def __init__(self):
     pass
+
   def run_inference_for_single_image(self, model, image):
-    #image = np.asarray(image)
+    
     # The input needs to be a tensor, convert it using `tf.convert_to_tensor`.
     input_tensor = tf.convert_to_tensor(image)
-    # The model expects a batch of images, so add an axis with `tf.newaxis`.
+    # The model expects a batch of images, so add an axis with `tf.newaxis`. for example doesn't want a shape like this (480, 640, 3),
+    # instead it needs a shape like this (1, 480, 640, 3)
     input_tensor = input_tensor[tf.newaxis,...]
+
 
     # Run inference
     model_fn = model.signatures['serving_default']
@@ -71,14 +74,15 @@ class object_detection():
     return output_dict
 
   def show_inference(self, model, img):
-    # the array based representation of the image will be used later in order to prepare the
-    # result image with boxes and labels on it.
+    
+    # convert the img to numpy array
     image_np = np.array(img)
+
     # Actual detection.
     output_dict = self.run_inference_for_single_image(model, image_np)
     
 
-    # Visualization of the results of a detection.
+    # Visualization of the results of a detection. 
     vis_util.visualize_boxes_and_labels_on_image_array(
         image_np,
         output_dict['detection_boxes'],
@@ -91,65 +95,73 @@ class object_detection():
 
     tem = np.array(image_np)
     image = cv2.cvtColor(tem, cv2.COLOR_RGB2BGR)
-    #print(type(image))
-    #print(image)
     return image
     
 
-#for image_path in TEST_IMAGE_PATHS:
-#  show_inference(detection_model, image_path)
-
-
   def web_cam_detect(self):
 
-
+    # allocate a cam
     cap = cv2.VideoCapture(0)
+
     if not cap.isOpened():
         print("Cannot open camera")
         exit()
+
+
     while True:
       # Capture frame-by-frame
       ret, frame = cap.read()
+
       # if frame is read correctly ret is True
       if not ret:
         print("Can't receive frame (stream end?). Exiting ...")
         break
-      # Our operations on the frame come here
-      # Display the resulting frame
+
+
       img = self.show_inference(detection_model, frame)
       img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+
+      # play the video
       cv2.imshow('object_detection', img)
 
-      #cv.imshow('frame', gray)
+      # wait until the user presses q
       if cv2.waitKey(1) == ord('q'):
-          break
+
+        break
     # When everything done, release the capture
     cap.release()
     cv2.destroyAllWindows()
 
 
-
-
   def detect_img(self):
+    # detect all the img
     imgs = glob.glob("images/test/*.jpg")
+    # declate a counter
     c = 0
+
     for i in imgs:
-
+      # read all the imgs
       img = cv2.imread(i)
-        # if frame is read correctly ret is True
 
 
+      # detect the img
       img = self.show_inference(detection_model, img)
       img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+
+      # save the img
       cv2.imwrite('images/detected/image'+str(c)+'.jpg', img)
       c+=1
 
-    def get_imgs_path(self):
-      pass
+
 
 if __name__=='__main__':
+  # make an object of object_detection
   od = object_detection()
-  #od.web_cam_detect()
-  od.detect_img()
 
-  print('nice')
+  # open an object detection on web cam 
+  od.web_cam_detect()
+
+  # detect object on images
+  #od.detect_img()
+
+ 
